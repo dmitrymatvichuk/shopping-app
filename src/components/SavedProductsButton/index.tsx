@@ -1,0 +1,1 @@
+export { SavedProductsButton } from './SavedProductsButton';
