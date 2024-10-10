@@ -1,7 +1,8 @@
+import React, { useCallback } from "react";
 import { Product } from "../../types/Product";
 
 type CartItemProps = {
-  product: Product;
+  product: Product & { quantity: number };
   onRemove: (id: number) => void;
   onChangeQuantity: (id: number, quantity: number) => void;
 };
@@ -11,22 +12,24 @@ export const CartItem: React.FC<CartItemProps> = ({
   onRemove,
   onChangeQuantity,
 }) => {
-  const { price, imageUrl, quantity, name, id } = product;
+  const { price, image, quantity, title, id } = product;
 
-  const validQuantity = quantity ?? 1;
+  const validQuantity = Math.max(quantity, 1);
 
-  const handleDeleteItem = () => {
+  const handleDeleteItem = useCallback(() => {
     onRemove(id);
-  };
+  }, [id, onRemove]);
 
-  const handleQuantityChange = (action: string) => () => {
-    const newQuantity =
-      action === "remove" ? validQuantity - 1 : validQuantity + 1;
-
-    if (newQuantity >= 1) {
-      onChangeQuantity(id, newQuantity);
-    }
-  };
+  const handleQuantityChange = useCallback(
+    (action: "remove" | "add") => {
+      const newQuantity =
+        action === "remove" ? validQuantity - 1 : validQuantity + 1;
+      if (newQuantity >= 1) {
+        onChangeQuantity(id, newQuantity);
+      }
+    },
+    [id, validQuantity, onChangeQuantity]
+  );
 
   const totalPrice = (price * validQuantity).toFixed(2);
 
@@ -38,40 +41,37 @@ export const CartItem: React.FC<CartItemProps> = ({
           data-cy="cartDeleteButton"
           className="CartItem__remove-button"
           onClick={handleDeleteItem}
-        >
-          {" "}
-        </button>
+        ></button>
+
         <div
           className="CartItem__product-img"
-          style={{ backgroundImage: `url(${imageUrl})` }}
+          style={{ backgroundImage: `url(${image})` }}
         />
-        <div className="CartItem__product-name">{name}</div>
+
+        <div className="CartItem__product-name">{title}</div>
       </div>
+
       <div className="CartItem__section">
         <div className="CartItem__quantity-section">
           <button
             type="button"
             className="CartItem__quantity-button CartItem__quantity-button--remove"
-            onClick={handleQuantityChange("remove")}
+            onClick={() => handleQuantityChange("remove")}
             disabled={validQuantity <= 1}
-          >
-            {" "}
-          </button>
+          ></button>
+
           <div className="CartItem__quantity" data-cy="productQauntity">
             {validQuantity}
           </div>
+
           <button
             type="button"
             className="CartItem__quantity-button CartItem__quantity-button--add"
-            onClick={handleQuantityChange("add")}
-          >
-            {" "}
-          </button>
+            onClick={() => handleQuantityChange("add")}
+          ></button>
         </div>
-        <span className="CartItem__price">
-          {String.fromCodePoint(0x00024)}
-          {totalPrice}
-        </span>
+        
+        <span className="CartItem__price">{`$${totalPrice}`}</span>
       </div>
     </div>
   );

@@ -79,4 +79,14 @@
       box-shadow: 0 5px 15px rgba(23, 32, 49, 0.5);
     }
   }
+
+  &__button--added {
+    background-color: #4caf50;
+    cursor: not-allowed;
+    box-shadow: none;
+  
+    &:hover {
+      background-color: #45a049;
+    }
+  }
 }

@@ -1,6 +1,6 @@
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "../../redux/store";
-import { removeCartItem, changeCartItems } from "../../redux/slices/cartSlice";
+import { removeFromCart, changeCartItems } from "../../redux/slices/cartSlice";
 import { CartItem } from "./CartItem";
 import { BackButton } from "../../components/BackButton";
 import { useState } from "react";
@@ -38,7 +38,7 @@ export const CartPage = () => {
   };
 
   const handleRemoveFromCart = (id: number) => {
-    dispatch(removeCartItem({ id }));
+    dispatch(removeFromCart(id));
   };
 
   const handleChangeQuantity = (id: number, quantity: number) => {

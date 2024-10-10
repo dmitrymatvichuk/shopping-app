@@ -1,23 +1,10 @@
 import React from "react";
-import { useDispatch } from "react-redux";
-import { addToCart } from "../../redux/slices/cartSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { addToCart, removeFromCart } from "../../redux/slices/cartSlice";
+import { RootState } from "../../redux/store";
+import { Product } from "../../types/Product";
+
 import "./ProductsList.scss";
-
-interface Product {
-  id: number;
-  title: string;
-  price: number;
-  image: string;
-  category: string;
-}
-
-interface CartProduct extends Product {
-  name: string;
-  discount: number;
-  imageUrl: string;
-  type: string;
-  quantity: number;
-}
 
 interface ProductListProps {
   products: Product[];
@@ -25,45 +12,58 @@ interface ProductListProps {
 
 export const ProductsList: React.FC<ProductListProps> = ({ products }) => {
   const dispatch = useDispatch();
+  const cart = useSelector((state: RootState) => state.cart.cartItems);
 
   const handleAddToCart = (product: Product) => {
-    const cartProduct: CartProduct = {
-      ...product,
-      name: product.title,
-      discount: 0,
-      imageUrl: product.image,
-      type: product.category,
-      quantity: 1,
-    };
-    dispatch(addToCart(cartProduct));
+    dispatch(addToCart(product));
+  };
+
+  const handleRemoveFromCart = (productId: number) => {
+    dispatch(removeFromCart(productId));
+  };
+
+  const isProductInCart = (productId: number) => {
+    return cart.some((item) => item.id === productId);
   };
 
   return (
     <div className="ProductsList__products">
-      {products.map((product) => (
-        <div className="ProductCard" key={product.id}>
-          <div className="ProductCard__content">
-            <div className="ProductCard__img-container">
-              <img
-                src={product.image}
-                alt={product.title}
-                className="ProductCard__img"
-              />
-            </div>
-            <h3 className="ProductCard__name">{product.title}</h3>
-          </div>
+      {products.map((product) => {
+        const inCart = isProductInCart(product.id);
 
-          <div className="ProductCard__footer">
-            <div className="ProductCard__price">{product.price} $</div>
-            <button
-              className="ProductCard__button"
-              onClick={() => handleAddToCart(product)}
-            >
-              Add to Cart
-            </button>
+        return (
+          <div className="ProductCard" key={product.id}>
+            <div className="ProductCard__content">
+              <div className="ProductCard__img-container">
+                <img
+                  src={product.image}
+                  alt={product.title}
+                  className="ProductCard__img"
+                />
+              </div>
+              <h3 className="ProductCard__name">{product.title}</h3>
+            </div>
+
+            <div className="ProductCard__footer">
+              <div className="ProductCard__price">{product.price} $</div>
+              <button
+                className={`ProductCard__button ${
+                  inCart ? "ProductCard__button--added" : ""
+                }`}
+                onClick={() => {
+                  if (inCart) {
+                    handleRemoveFromCart(product.id);
+                  } else {
+                    handleAddToCart(product);
+                  }
+                }}
+              >
+                {inCart ? "Delete card" : "Add to Cart"}
+              </button>
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 };

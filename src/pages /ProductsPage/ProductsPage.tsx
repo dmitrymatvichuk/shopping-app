@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import {
   fetchProducts,
@@ -8,15 +8,16 @@ import { RootState, AppDispatch } from "../../redux/store";
 import { Breadcrumbs } from "../../components/Breadcrumbs";
 import { Loader } from "../../components/Loader";
 import { NoResults } from "../../components/NoResults";
+import { ProductsList } from "../../components/ProductsList";
 
 import "./ProductsPage.scss";
-import { ProductsList } from "../../components/ProductsList";
 
 export const ProductsPage = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { products, categories, status, error } = useSelector(
     (state: RootState) => state.products
   );
+
   const [category, setCategory] = useState("all");
   const [sortOrder, setSortOrder] = useState("ascending");
 
@@ -27,30 +28,22 @@ export const ProductsPage = () => {
     }
   }, [dispatch, status]);
 
-  const handleCategoryChange = (
-    event: React.ChangeEvent<HTMLSelectElement>
-  ) => {
+  const handleCategoryChange = (event: React.ChangeEvent<HTMLSelectElement>) =>
     setCategory(event.target.value);
-  };
 
-  const handleSortOrderChange = (
-    event: React.ChangeEvent<HTMLSelectElement>
-  ) => {
+  const handleSortOrderChange = (event: React.ChangeEvent<HTMLSelectElement>) =>
     setSortOrder(event.target.value);
-  };
 
-  const filteredProducts =
-    category === "all"
-      ? products
-      : products.filter((product) => product.category === category);
+  const sortedProducts = useMemo(() => {
+    const filteredProducts =
+      category === "all"
+        ? products
+        : products.filter((product) => product.category === category);
 
-  const sortedProducts = [...filteredProducts].sort((a, b) => {
-    if (sortOrder === "ascending") {
-      return a.price - b.price;
-    } else {
-      return b.price - a.price;
-    }
-  });
+    return [...filteredProducts].sort((a, b) => {
+      return sortOrder === "ascending" ? a.price - b.price : b.price - a.price;
+    });
+  }, [products, category, sortOrder]);
 
   return (
     <div className="ProductsPage">
@@ -99,16 +92,12 @@ export const ProductsPage = () => {
             <h2 className="ProductsPage__error-title">Something went wrong</h2>
           ) : (
             <div className="ProductsPage__section">
-              {status === "loading" && <Loader />}
-
-              {status === "succeeded" && (
-                <>
-                  {sortedProducts.length === 0 ? (
-                    <NoResults category={category} />
-                  ) : (
-                    <ProductsList products={sortedProducts} />
-                  )}
-                </>
+              {status === "loading" ? (
+                <Loader />
+              ) : status === "succeeded" && sortedProducts.length === 0 ? (
+                <NoResults category={category} />
+              ) : (
+                <ProductsList products={sortedProducts} />
               )}
             </div>
           )}
